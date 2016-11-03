@@ -2,6 +2,9 @@
 
 [![npm version](https://badge.fury.io/js/algebrite.svg)](https://badge.fury.io/js/algebrite)
 
+This is not the original repository, you can find the original repository at:
+https://github.com/davidedc/Algebrite
+
 Algebrite is a Javascript library for symbolic mathematics (technically, CoffeeScript) designed to be comprehensible and easily extensible.
 
 
