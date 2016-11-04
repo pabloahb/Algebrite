@@ -98,7 +98,30 @@ clear_symbols = ->
 	for i in [0...NSYM]
 		binding[i] = symtab[i]
 
+# get all the modified symbols
+get_symbols = ->
+	i = 0
+	count=0
+	symb=[]
+	bind=[]
+	for i in [0...NSYM]
+		if binding[i] != symtab[i]
+			symb[count]=symtab[i]
+			bind[count]=binding[i]
+			count=count+1
+	symlist =
+		symbols: symb
+		binding: bind
+	return symlist
 
+# set the symbols from a symbols - binds object
+set_symbols = (symlist) ->
+	i = 0
+	for i in [0...symlist.symbols.length]
+		set_binding(symlist.symbols[i],symlist.binding[i])
+	
+$.get_symbols = get_symbols
+$.set_symbols = set_symbols
 $.get_binding = get_binding
 $.set_binding = set_binding
 $.usr_symbol = usr_symbol
