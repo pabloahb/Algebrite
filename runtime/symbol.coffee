@@ -98,7 +98,7 @@ clear_symbols = ->
 	for i in [0...NSYM]
 		binding[i] = symtab[i]
 
-# get all the modified symbols
+# get all the modified symbols as a symbols - binds object
 get_symbols = ->
 	i = 0
 	count=0
@@ -114,12 +114,52 @@ get_symbols = ->
 		binding: bind
 	return symlist
 
+# convert a binding to string 
+binding_to_string = (s,b) ->
+	symstring=""
+	sString=s.toString()
+	bString=b.toString()
+	switch b.k
+		when CONS
+			if bString.indexOf("function ")==0
+				func_array=bString.split(" -> ")
+				func_array[0]=func_array[0].replace("function ",s.toString()).replace(" ",",")
+				symstring=func_array[0]+"="+func_array[1]
+			else
+				symstring=sString+"="+bString
+		when NUM
+			symstring=sString+"="+bString
+		when DOUBLE
+			symstring=sString+"="+bString
+		when STR
+			symstring=sString+"="+bString
+		when TENSOR
+			symstring=sString+"="+bString
+		when SYM
+			symstring=sString+"="+bString
+		else
+			symstring=sString+"="+bString
+	return symstring
+
+# get all the modified symbols as a vector of strings
+get_symbols_as_strings = ->
+	i = 0
+	count=0
+	symb=[]
+	for i in [0...NSYM]
+		if binding[i] != symtab[i]
+			symb[count]=binding_to_string(symtab[i],binding[i])
+			count=count+1
+	return symb
+
 # set the symbols from a symbols - binds object
 set_symbols = (symlist) ->
 	i = 0
 	for i in [0...symlist.symbols.length]
 		set_binding(symlist.symbols[i],symlist.binding[i])
+	return true
 	
+$.get_symbols_as_strings = get_symbols_as_strings
 $.get_symbols = get_symbols
 $.set_symbols = set_symbols
 $.get_binding = get_binding
