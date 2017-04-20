@@ -101,18 +101,25 @@ clear_symbols = ->
 # get all the modified symbols as a symbols - binds object
 get_symbols = ->
 	i = 0
-	count=0
+	sym_count=0
 	symb=[]
 	bind=[]
 	for i in [0...NSYM]
 		if binding[i] != symtab[i]
-			symb[count]=symtab[i]
-			bind[count]=binding[i]
-			count=count+1
+			symb[sym_count]=symtab[i]
+			bind[sym_count]=binding[i]
+			sym_count=sym_count+1
 	symlist =
 		symbols: symb
 		binding: bind
 	return symlist
+
+# set the symbols from a symbols - binds object
+set_symbols = (symlist) ->
+	i = 0
+	for i in [0...symlist.symbols.length]
+		set_binding(symlist.symbols[i],symlist.binding[i])
+	return true
 
 # convert a binding to string 
 binding_to_string = (s,b) ->
@@ -144,21 +151,27 @@ binding_to_string = (s,b) ->
 # get all the modified symbols as a vector of strings
 get_symbols_as_strings = ->
 	i = 0
-	count=0
+	sym_count=0
 	symb=[]
 	for i in [0...NSYM]
 		if binding[i] != symtab[i]
-			symb[count]=binding_to_string(symtab[i],binding[i])
-			count=count+1
+			symb[sym_count]=
+				symbol: symtab[i].toString()
+				script: binding_to_string(symtab[i],binding[i])
+			sym_count=sym_count+1
 	return symb
 
-# set the symbols from a symbols - binds object
-set_symbols = (symlist) ->
+# set the symbols from a list of symbol - string objects
+set_symbols_from_strings = (symlist) ->
 	i = 0
-	for i in [0...symlist.symbols.length]
-		set_binding(symlist.symbols[i],symlist.binding[i])
+	for i in [0...symlist.length]
+		current_symbol=usr_symbol(symlist[i].symbol)
+		if current_symbol == get_binding(current_symbol)
+			try
+				run(symlist[i].script)
 	return true
 	
+$.set_symbols_from_strings = set_symbols_from_strings
 $.get_symbols_as_strings = get_symbols_as_strings
 $.get_symbols = get_symbols
 $.set_symbols = set_symbols
