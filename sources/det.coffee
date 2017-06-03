@@ -1,20 +1,24 @@
-#-----------------------------------------------------------------------------
-#
-#	Input:		Matrix on stack
-#
-#	Output:		Determinant on stack
-#
-#	Example:
-#
-#	> det(((1,2),(3,4)))
-#	-2
-#
-#	Note:
-#
-#	Uses Gaussian elimination for numerical matrices.
-#
-#-----------------------------------------------------------------------------
+### det =====================================================================
 
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+m
+
+General description
+-------------------
+Returns the determinant of matrix m.
+Uses Gaussian elimination for numerical matrices.
+
+Example:
+
+  det(((1,2),(3,4)))
+  > -2
+
+###
 
 
 DET_check_arg = ->
@@ -140,7 +144,7 @@ determinant = (n) ->
 
 	stack[h] = stack[tos - 1]
 
-	tos = h + 1
+	moveTos h + 1
 
 #-----------------------------------------------------------------------------
 #
@@ -184,7 +188,7 @@ yydetg = ->
 
 	lu_decomp(n)
 
-	tos -= n * n
+	moveTos tos - n * n
 
 	push(p1)
 

@@ -17,7 +17,9 @@ Eval_zero = ->
 		push(car(p2))
 		Eval()
 		i = pop_integer()
-		if (i < 2)
+		if (i < 1 || isNaN(i))
+			# if the input is nonsensical
+			# just return 0
 			push(zero)
 			return
 		m *= i

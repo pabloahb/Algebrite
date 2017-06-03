@@ -55,7 +55,7 @@ add_terms = (n) ->
 
 	if DEBUG
 		for i in [0...tos]
-			print1 stack[i]
+			console.log print_list stack[i]
 
 	for i in [0...10]
 
@@ -75,11 +75,11 @@ add_terms = (n) ->
 
 		n = combine_terms(h, n)
 
-	tos = h + n
+	moveTos h + n
 
 	switch (n)
 		when 0
-			push_integer(0)
+			if evaluatingAsFloats then push_double(0.0) else push(zero)
 		when 1
 		else
 			list(n)
@@ -94,7 +94,7 @@ add_terms = (n) ->
 
 	if DEBUG
 		for i in [0...tos]
-			print1 stack[i]
+			console.log print_list stack[i]
 
 # Compare terms for order, clobbers p1 and p2.
 
@@ -224,8 +224,12 @@ combine_terms = (s, n) ->
 			i++
 			continue
 
-		p1 = one
-		p2 = one
+		if evaluatingAsFloats
+			p1 = one_as_double
+			p2 = one_as_double
+		else
+			p1 = one
+			p2 = one
 
 		t = 0
 
@@ -321,7 +325,7 @@ add_all = (k) ->
 		push_terms(stack[s+i])
 	add_terms(tos - h)
 	p1 = pop()
-	tos -= k
+	moveTos tos - k
 	push(p1)
 	restore()
 

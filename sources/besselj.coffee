@@ -1,11 +1,19 @@
-###
- Bessel J function
+### besselj =====================================================================
 
-	1st arg		x
+Tags
+----
+scripting, JS, internal, treenode, general concept
 
-	2nd arg		n
+Parameters
+----------
+x,n
 
-Recurrence relation
+General description
+-------------------
+
+Returns a solution to the Bessel differential equation (Bessel function of first kind).
+
+Recurrence relation:
 
 	besselj(x,n) = (2/x) (n-1) besselj(x,n-1) - besselj(x,n-2)
 
@@ -13,7 +21,7 @@ Recurrence relation
 
 	besselj(x,-1/2) = sqrt(2/pi/x) cos(x)
 
-For negative n, reorder the recurrence relation as
+For negative n, reorder the recurrence relation as:
 
 	besselj(x,n-2) = (2/x) (n-1) besselj(x,n-1) - besselj(x,n)
 
@@ -21,11 +29,12 @@ Substitute n+2 for n to obtain
 
 	besselj(x,n) = (2/x) (n+1) besselj(x,n+1) - besselj(x,n+2)
 
-Examples
+Examples:
 
 	besselj(x,3/2) = (1/x) besselj(x,1/2) - besselj(x,-1/2)
 
 	besselj(x,-3/2) = -(1/x) besselj(x,-1/2) - besselj(x,1/2)
+
 ###
 
 
@@ -58,7 +67,7 @@ yybesselj = ->
 
 	# numerical result
 
-	if (isdouble(p1) && n != 0x80000000)
+	if (isdouble(p1) && !isNaN(n))
 		d = jn(n, p1.d)
 		push_double(d)
 		return
@@ -71,7 +80,7 @@ yybesselj = ->
 
 	# besselj(0,n) = 0
 
-	if (iszero(p1) && n != 0x80000000)
+	if (iszero(p1) && !isNaN(n))
 		push_integer(0)
 		return
 

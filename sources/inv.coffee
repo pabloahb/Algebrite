@@ -15,7 +15,8 @@
 #
 #	Note:
 #
-#	Uses Gaussian elimination for numerical matrices.
+#	THIS IS DIFFERENT FROM INVERSE OF AN EXPRESSION (inv)
+#   Uses Gaussian elimination for numerical matrices.
 #
 #-----------------------------------------------------------------------------
 
@@ -156,7 +157,7 @@ yyinvg = ->
 	for i in [0...(n * n)]
 		p1.tensor.elem[i] = stack[h + i]
 
-	tos -= 2 * n * n
+	moveTos tos - 2 * n * n
 
 	push(p1)
 

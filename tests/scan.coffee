@@ -22,6 +22,9 @@ test_scan = ->
 
 		# this bug fixed in version 30 (used to give one result, 14)
 
+		"(1+1)",
+		"2",
+
 		"2+2\n(3+3)",
 		"4\n6",
 
@@ -34,20 +37,3 @@ test_scan = ->
 		"1\n1",
 	]
 
-
-
-#	Notes:
-#
-#	Formerly add() and multiply() were used to construct expressions but
-#	this preevaluation caused problems.
-#
-#	For example, suppose A has the floating point value inf.
-#
-#	Before, the expression A/A resulted in 1 because the scanner would
-#	divide the symbols.
-#
-#	After removing add() and multiply(), A/A results in nan which is the
-#	correct result.
-#
-#	The functions negate() and inverse() are used but they do not cause
-#	problems with preevaluation of symbols.

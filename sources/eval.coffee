@@ -7,20 +7,25 @@
 
 
 Eval = ->
-	#debugger
 	check_esc_flag()
 	save()
 	p1 = pop()
 	if !p1?
 		debugger
+
+	if !evaluatingAsFloats and isfloating(p1)
+		willEvaluateAsFloats = true
+		evaluatingAsFloats++
+
 	switch (p1.k)
 		when CONS
 			Eval_cons()
 		when NUM
-			push(p1)
-		when DOUBLE
-			push(p1)
-		when STR
+			if evaluatingAsFloats
+				push_double(convert_rational_to_double(p1))
+			else
+				push(p1)
+		when DOUBLE, STR
 			push(p1)
 		when TENSOR
 			Eval_tensor()
@@ -28,22 +33,39 @@ Eval = ->
 			Eval_sym()
 		else
 			stop("atom?")
+
+	if willEvaluateAsFloats
+		evaluatingAsFloats--
+
 	restore()
 
 Eval_sym = ->
-	# bare keyword?
 
+	# note that function calls are not processed here
+	# because, since they have an argument (at least an empty one)
+	# they are actually CONs, which is a branch of the
+	# switch before the one that calls this function
+
+	# bare keyword?
+	# If it's a keyword, then we don't look
+	# at the binding array, because keywords
+	# are not redefinable. 
 	if (iskeyword(p1))
 		push(p1)
 		push(symbol(LAST))
 		list(2)
 		Eval()
 		return
+	else if (p1 == symbol(PI) and evaluatingAsFloats)
+		push_double(Math.PI)
+		return
 
 	# Evaluate symbol's binding
 	p2 = get_binding(p1)
+	if DEBUG then console.log "looked up: " + p1 + " which contains: " + p2
 
 	push(p2)
+
 
 	# differently from standard Lisp,
 	# here the evaluation is not
@@ -53,16 +75,54 @@ Eval_sym = ->
 	# Uncomment these two lines to get Lisp
 	# behaviour (and break most tests)
 	if (p1 != p2)
+
+		# detect recursive lookup of symbols, which would otherwise
+		# cause a stack overflow.
+		# Note that recursive functions will still work because
+		# as mentioned at the top, this method doesn't look
+		# up and evaluate function calls.
+		positionIfSymbolAlreadyBeingEvaluated = chainOfUserSymbolsNotFunctionsBeingEvaluated.indexOf(p1)
+		if  positionIfSymbolAlreadyBeingEvaluated != -1
+			cycleString = ""
+			for i in [positionIfSymbolAlreadyBeingEvaluated...chainOfUserSymbolsNotFunctionsBeingEvaluated.length]
+				cycleString += chainOfUserSymbolsNotFunctionsBeingEvaluated[i].printname + " -> "
+			cycleString += p1.printname
+
+			stop("recursive evaluation of symbols: " + cycleString)
+			return
+
+		chainOfUserSymbolsNotFunctionsBeingEvaluated.push(p1)
+
+
 		Eval()
 
+		chainOfUserSymbolsNotFunctionsBeingEvaluated.pop()
+
 Eval_cons = ->
-	if (!issymbol(car(p1)))
+	
+	cons_head = car(p1)
+
+	# normally the cons_head is a symbol,
+	# but sometimes in the case of
+	# functions we don't have a symbol,
+	# we have to evaluate something to get to the
+	# symbol. For example if a function is inside
+	# a tensor, then we need to evaluate an index
+	# access first to get to the function.
+	# In those cases, we find an EVAL here,
+	# so we proceed to EVAL
+	if car(cons_head) == symbol(EVAL)
+		Eval_user_function()
+		return
+
+	# If we didn't fall in the EVAL case above
+	# then at this point we must have a symbol.
+	if (!issymbol(cons_head))
 		stop("cons?")
 
-	switch (symnum(car(p1)))
+	switch (symnum(cons_head))
 		when ABS then Eval_abs()
 		when ADD then Eval_add()
-		when PATTERN then Eval_pattern()
 		when ADJ then Eval_adj()
 		when AND then Eval_and()
 		when ARCCOS then Eval_arccos()
@@ -82,7 +142,8 @@ Eval_cons = ->
 		when CHOOSE then Eval_choose()
 		when CIRCEXP then Eval_circexp()
 		when CLEAR then Eval_clear()
-		when CLEARSUBSTRULES then Eval_clearsubstrules()
+		when CLEARALL then Eval_clearall()
+		when CLEARPATTERNS then Eval_clearpatterns()
 		when CLOCK then Eval_clock()
 		when COEFF then Eval_coeff()
 		when COFACTOR then Eval_cofactor()
@@ -99,7 +160,6 @@ Eval_cons = ->
 		when DET then Eval_det()
 		when DIM then Eval_dim()
 		when DIRAC then Eval_dirac()
-		when DISPLAY then Eval_display()
 		when DIVISORS then Eval_divisors()
 		when DO then Eval_do()
 		when DOT then Eval_inner()
@@ -120,6 +180,7 @@ Eval_cons = ->
 		when FACTORPOLY then Eval_factorpoly()
 		when FILTER then Eval_filter()
 		when FLOATF then Eval_float()
+		when APPROXRATIO then Eval_approxratio()
 		when FLOOR then Eval_floor()
 		when FOR then Eval_for()
 		# this is invoked only when we
@@ -146,7 +207,6 @@ Eval_cons = ->
 		when LEGENDRE then Eval_legendre()
 		when LOG then Eval_log()
 		when LOOKUP then Eval_lookup()
-		when MAG then Eval_mag()
 		when MOD then Eval_mod()
 		when MULTIPLY then Eval_multiply()
 		when NOT then Eval_not()
@@ -156,22 +216,29 @@ Eval_cons = ->
 		when OPERATOR then Eval_operator()
 		when OR then Eval_or()
 		when OUTER then Eval_outer()
+		when PATTERN then Eval_pattern()
+		when PATTERNSINFO then Eval_patternsinfo()
 		when POLAR then Eval_polar()
 		when POWER then Eval_power()
 		when PRIME then Eval_prime()
-		when PRINT then Eval_display()
+		when PRINT then Eval_print()
+		when PRINT2DASCII then Eval_print2dascii()
+		when PRINTFULL then Eval_printfull()
 		when PRINTLATEX then Eval_printlatex()
 		when PRINTLIST then Eval_printlist()
+		when PRINTPLAIN then Eval_printplain()
 		when PRODUCT then Eval_product()
 		when QUOTE then Eval_quote()
 		when QUOTIENT then Eval_quotient()
 		when RANK then Eval_rank()
 		when RATIONALIZE then Eval_rationalize()
 		when REAL then Eval_real()
+		when ROUND then Eval_round()
 		when YYRECT then Eval_rect()
 		when ROOTS then Eval_roots()
 		when SETQ then Eval_setq()
 		when SGN then Eval_sgn()
+		when SILENTPATTERN then Eval_silentpattern()
 		when SIMPLIFY then Eval_simplify()
 		when SIN then Eval_sin()
 		when SINH then Eval_sinh()
@@ -180,6 +247,7 @@ Eval_cons = ->
 		when STOP then Eval_stop()
 		when SUBST then Eval_subst()
 		when SUM then Eval_sum()
+		when SYMBOLSINFO then Eval_symbolsinfo()
 		when TAN then Eval_tan()
 		when TANH then Eval_tanh()
 		when TAYLOR then Eval_taylor()
@@ -198,23 +266,53 @@ Eval_cons = ->
 Eval_binding = ->
 	push(get_binding(cadr(p1)))
 
-# checks a predicate, i.e. check(A = B)
+### check =====================================================================
+
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+p
+
+General description
+-------------------
+Checks the predicate p, e.g. check(a = b)
+Note how "check" can turn what normally would be an assignment into a test,
+so in the case above "a" is not assigned anything.
+
+###
 
 # check definition
 Eval_check = ->
 	push(cadr(p1))
 	Eval_predicate()
 	p1 = pop()
-	if (iszero(p1))
-		stop("check(arg): arg is zero")
-	push(symbol(NIL)) # no result is printed
+	push(p1)
 
 Eval_det = ->
 	push(cadr(p1))
 	Eval()
 	det()
 
-# dim definition
+
+### dim =====================================================================
+
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+m,n
+
+General description
+-------------------
+Returns the cardinality of the nth index of tensor "m".
+
+###
+
 Eval_dim = ->
 	#int n
 	push(cadr(p1))
@@ -238,7 +336,22 @@ Eval_divisors = ->
 	Eval()
 	divisors()
 
-# do definition
+### do =====================================================================
+
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+a,b,...
+
+General description
+-------------------
+Evaluates each argument from left to right. Returns the result of the last argument.
+
+###
+
 Eval_do = ->
 	push(car(p1))
 	p1 = cdr(p1)
@@ -272,7 +385,8 @@ Eval_Eval = ->
 		p1 = cddr(p1)
 	Eval()
 
-# exp definition
+# exp evaluation: it replaces itself with
+# a POWER(E,something) node and evals that one
 Eval_exp = ->
 	push(cadr(p1))
 	Eval()
@@ -312,10 +426,38 @@ Eval_hilbert = ->
 
 Eval_index = ->
 	h = tos
+	orig = p1
+	
+	# look into the head of the list,
+	# when evaluated it should be a tensor
+	p1 = cdr(p1)
+	push car(p1)
+	Eval()
+	theTensor = stack[tos-1]
+
+	if isnum(theTensor)
+		stop("trying to access a scalar as a tensor")
+
+	if !istensor(theTensor)
+		# the tensor is not allocated yet, so
+		# leaving the expression unevalled
+		moveTos h
+		push orig
+		return
+
+	# we examined the head of the list which
+	# was the tensor, now look into
+	# the indexes
 	p1 = cdr(p1)
 	while (iscons(p1))
 		push(car(p1))
 		Eval()
+		if !isintegerorintegerfloat(stack[tos-1])
+			# index with something other than
+			# an integer
+			moveTos h
+			push orig
+			return
 		p1 = cdr(p1)
 	index_function(tos - h)
 
@@ -350,16 +492,6 @@ Eval_isinteger = ->
 	push(p1)
 	list(2)
 
-Eval_multiply = ->
-	push(cadr(p1))
-	Eval()
-	p1 = cddr(p1)
-	while (iscons(p1))
-		push(car(p1))
-		Eval()
-		multiply()
-		p1 = cdr(p1)
-
 Eval_number = ->
 	push(cadr(p1))
 	Eval()
@@ -378,18 +510,6 @@ Eval_operator = ->
 		Eval()
 		p1 = cdr(p1)
 	list(tos - h)
-
-Eval_print = ->
-	p1 = cdr(p1)
-	while (iscons(p1))
-		push(car(p1))
-		Eval()
-		if (equaln(get_binding(symbol(TTY)), 1))
-			printline(pop())
-		else
-			display(pop())
-		p1 = cdr(p1)
-	push(symbol(NIL))
 
 # quote definition
 Eval_quote = ->
@@ -501,24 +621,31 @@ Eval_subst = ->
 	subst()
 	Eval() # normalize
 
+# always returns a matrix with rank 2
+# i.e. two dimensions,
+# the passed parameter is the size
 Eval_unit = ->
 	i = 0
 	n = 0
 	push(cadr(p1))
 	Eval()
 	n = pop_integer()
-	if (n < 2)
+
+	if isNaN(n)
 		push(p1)
 		return
+
+	if (n < 1)
+		push(p1)
+		return
+
 	p1 = alloc_tensor(n * n)
 	p1.tensor.ndim = 2
 	p1.tensor.dim[0] = n
 	p1.tensor.dim[1] = n
 	for i in [0...n]
 		p1.tensor.elem[n * i + i] = one
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
 	push(p1)
 
 Eval_noexpand = ->
@@ -527,14 +654,20 @@ Eval_noexpand = ->
 	Eval()
 	expanding = prev_expanding
 
-# like Eval() except "=" is Evaluated as "=="
+# like Eval() except "=" (assignment) is treated
+# as "==" (equality test)
 
 Eval_predicate = ->
 	save()
-	p1 = pop()
+	p1 = top()
 	if (car(p1) == symbol(SETQ))
-		Eval_testeq()
-	else
-		push(p1)
-		Eval()
+		# replace the assignment in the
+		# head with an equality test
+		pop()
+		push_symbol(TESTEQ)
+		push cadr(p1)
+		push caddr(p1)
+		list 3
+
+	Eval()
 	restore()

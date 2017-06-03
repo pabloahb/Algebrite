@@ -1,14 +1,43 @@
 #(docs are generated from top-level comments, keep an eye on the formatting!)
 
-### Tensor =====================================================================
+### tensor =====================================================================
 
 Tags
 ----
-[[scripting]] [[JS]] [[internal]] [[treenode]] [[generalconcept]]
+scripting, JS, internal, treenode, general concept
 
 General description
 -------------------
-A tensor is...
+Tensors are a strange in-between of matrices and "computer"
+rectangular data structures.
+
+Tensors, unlike matrices, and like rectangular data structures,
+can have an arbitrary number of dimensions (rank), although a tensor with
+rank zero is just a scalar.
+
+Tensors, like matrices and unlike many computer rectangular data structures,
+must be "contiguous" i.e. have no empty spaces within its size, and "uniform",
+i.e. each element must have the same shape and hence the same rank.
+
+Also tensors have necessarily to make a distinction between row vectors,
+column vectors (which have a rank of 2) and uni-dimensional vectors (rank 1).
+They look very similar but they are fundamentally different.
+
+Tensors with elements that are also tensors get promoted to a higher rank
+, this is so we can represent and get the rank of a matrix correctly.
+Example:
+Start with a tensor of rank 1 with 2 elements (i.e. shape: 2)
+if you put in both its elements another 2 tensors
+of rank 1 with 2 elements (i.e. shape: 2)
+then the result is a tensor of rank 2 with shape 2,2
+i.e. the dimension of a tensor at all times must be
+the number of nested tensors in it.
+Also, all tensors must be "uniform" i.e. they must be accessed
+uniformly, which means that all existing elements of a tensor
+must be contiguous and have the same shape.
+Implication of it all is that you can't put arbitrary
+tensors inside tensors (like you would do to represent block matrices)
+Rather, all tensors inside tensors must have same shape (and hence, rank)
 
 Limitations
 -----------
@@ -34,9 +63,7 @@ Eval_tensor = ->
 	#
 	#---------------------------------------------------------------------
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
 
 	nelem = p1.tensor.nelem
 
@@ -58,9 +85,7 @@ Eval_tensor = ->
 	a = p1.tensor.elem
 	b = p2.tensor.elem
 
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p2
 
 	for i in [0...nelem]
 		#console.log "push/pop: pushing element a of " + i
@@ -69,12 +94,8 @@ Eval_tensor = ->
 		#console.log "push/pop: popping into element b of " + i
 		b[i] = pop()
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
+	check_tensor_dimensions p2
 	#---------------------------------------------------------------------
 	#
 	#	push the result
@@ -222,6 +243,11 @@ scalar_times_tensor = ->
 	push(p3)
 
 	restore()
+
+check_tensor_dimensions = (p) ->
+	if p.tensor.nelem != p.tensor.elem.length
+		console.log "something wrong in tensor dimensions"
+		debugger
 
 is_square_matrix = (p) ->
 	if (istensor(p) && p.tensor.ndim == 2 && p.tensor.dim[0] == p.tensor.dim[1])
@@ -386,7 +412,7 @@ power_tensor = ->
 
 	n = pop_integer()
 
-	if (n == 0x80000000)
+	if (isNaN(n))
 		push_symbol(POWER)
 		push(p1)
 		push(p2)
@@ -404,9 +430,7 @@ power_tensor = ->
 		for i in [0...n]
 			p1.tensor.elem[n * i + i] = one
 
-		if p1.tensor.nelem != p1.tensor.elem.length
-			console.log "something wrong in tensor dimensions"
-			debugger
+		check_tensor_dimensions p1
 
 		push(p1)
 		return
@@ -442,13 +466,8 @@ copy_tensor = ->
 	for i in [0...p1.tensor.nelem]
 		p2.tensor.elem[i] = p1.tensor.elem[i]
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
+	check_tensor_dimensions p2
 
 	push(p2)
 
@@ -486,7 +505,7 @@ promote_tensor = ->
 	ndim = p1.tensor.ndim + p2.tensor.ndim
 
 	if (ndim > MAXDIM)
-		stop("tensor rank > 24")
+		stop("tensor rank > " + MAXDIM)
 
 	nelem = p1.tensor.nelem * p2.tensor.nelem
 
@@ -507,13 +526,8 @@ promote_tensor = ->
 		for j in [0...p2.tensor.nelem]
 			p3.tensor.elem[k++] = p2.tensor.elem[j]
 
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-
-	if p3.tensor.nelem != p3.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p2
+	check_tensor_dimensions p3
 
 	push(p3)
 

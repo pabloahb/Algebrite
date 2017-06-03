@@ -19,31 +19,31 @@ test_inner = ->
 		"inner(a,2)",
 		"2*a",
 
-		"inner(a,(b1,b2))",
-		"inner(a,(b1,b2))",
+		"inner(a,[b1,b2])",
+		"inner(a,[b1,b2])",
 
-		"inner((a1,a2),b)",
-		"inner((a1,a2),b)",
+		"inner([a1,a2],b)",
+		"inner([a1,a2],b)",
 
-		"inner(2,(b1,b2))",
-		"(2*b1,2*b2)",
+		"inner(2,[b1,b2])",
+		"[2*b1,2*b2]",
 
-		"inner((b1,b2),2)",
-		"(2*b1,2*b2)",
+		"inner([b1,b2],2)",
+		"[2*b1,2*b2]",
 
-		"inner(((a11,a12),(a21,a22)),(x1,x2))",
-		"(a11*x1+a12*x2,a21*x1+a22*x2)",
+		"inner([[a11,a12],[a21,a22]],[x1,x2])",
+		"[a11*x1+a12*x2,a21*x1+a22*x2]",
 
-		"inner((1,2),(3,4))",
+		"inner([1,2],[3,4])",
 		"11",
 
-		"inner(inner((1,2),((3,4),(5,6))),(7,8))",
+		"inner(inner([1,2],[[3,4],[5,6]]),[7,8])",
 		"219",
 
-		"inner((1,2),inner(((3,4),(5,6)),(7,8)))",
+		"inner([1,2],inner([[3,4],[5,6]],[7,8]))",
 		"219",
 
-		"inner((1,2),((3,4),(5,6)),(7,8))",
+		"inner([1,2],[[3,4],[5,6]],[7,8])",
 		"219",
 
 		"inner(c,a1+b1)",
@@ -77,23 +77,23 @@ test_inner = ->
 		"inner(a,inner(b,inner(c,d)))",
 
 		# scalar product of vectors:
-		"inner((a, b, c), (x, y, z))",
+		"inner([a, b, c], [x, y, z])",
 		"a*x+b*y+c*z",
 
 		# products of matrices and vectors:
-		"inner(((a, b), (c,d)), (x, y))",
-		"(a*x+b*y,c*x+d*y)",
+		"inner([[a, b], [c,d]], [x, y])",
+		"[a*x+b*y,c*x+d*y]",
 
-		"inner((x, y), ((a, b), (c,d)))",
-		"(a*x+c*y,b*x+d*y)",
+		"inner([x, y], [[a, b], [c,d]])",
+		"[a*x+c*y,b*x+d*y]",
 
-		"inner((x, y), ((a, b), (c,d)), (r, s))",
+		"inner([x, y], [[a, b], [c,d]], [r, s])",
 		"a*r*x+b*s*x+c*r*y+d*s*y",
 
 		# matrix product:
 
-		"inner(((a,b),(c,d)),((r,s),(t,u)))",
-		"((a*r+b*t,a*s+b*u),(c*r+d*t,c*s+d*u))",
+		"inner([[a,b],[c,d]],[[r,s],[t,u]])",
+		"[[a*r+b*t,a*s+b*u],[c*r+d*t,c*s+d*u]]",
 
 		# ---------------------------------------
 		# using the dot
@@ -150,6 +150,48 @@ test_inner = ->
 		"I",
 
 		"(-Iᵀ)·(-I)",
+		"I",
+
+		"c·(b+a)ᵀ·inv((a+b)ᵀ)·d",
+		"inner(c,d)",
+			
+		"c·d·(b+a)ᵀ·inv((a+b)ᵀ)",
+		"inner(c,d)",
+
+		"d·(b+a)ᵀ·inv((a+b)ᵀ)",
+		"d",
+			
+		"(b+a)ᵀ·inv((a+b)ᵀ)",
+		"I",
+			
+		"c·d·(b+a)ᵀ·inv((a+b)ᵀ)·inv(d)",
+		"c",
+					
+		"c·d·(b+a)ᵀ·inv((a+b)ᵀ)·inv(d)·inv(c)",
+		"I",
+			
+		"c·d·(b+a)ᵀ·inv((a+b)ᵀ)·inv(c·d)",
+		"I",
+			
+		"c·d·(a+b)ᵀ·inv(c·d·(b+a)ᵀ)",
+		"I",
+			
+		"inv(c)·c",
+		"I",
+			
+		"inv(c·a)·c·a",
+		"I",
+			
+		"inv(c·b·a)·c·b·a",
+		"I",
+			
+		"inv(c)·d·(a+b)ᵀ·inv(inv(c)·d·(b+a)ᵀ)",
+		"I",
+			
+		"inv(c+f)·d·(a+b)ᵀ·inv(inv(f+c)·d·(b+a)ᵀ)",
+		"I",
+			
+		"c·d·inv(a)·inv(c·d·inv(a))",
 		"I",
 
 	]

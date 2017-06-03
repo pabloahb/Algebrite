@@ -81,7 +81,7 @@ __legendre = ->
 	push(p3)
 	m = pop_integer()
 
-	if (n < 0 || n == 0x80000000 || m < 0 || m == 0x80000000)
+	if (n < 0 || isNaN(n) || m < 0 || isNaN(m))
 		push_symbol(LEGENDRE)
 		push(p1)
 		push(p2)
@@ -148,7 +148,7 @@ __legendre2 = (n, m) ->
 		push(p1)
 		derivative()
 
-# tos = tos * (-1)^m * (1-x^2)^(m/2)
+# moveTos tos * (-1)^m * (1-x^2)^(m/2)
 
 __legendre3 = (m) ->
 	if (m == 0)

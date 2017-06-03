@@ -12,45 +12,48 @@ Eval_product = ->
 	j = 0
 	k = 0
 
-	# 1st arg (quoted)
+	# 1st arg
+	body = cadr(p1)
 
-	p6 = cadr(p1)
+	# 2nd arg (index)
+	indexVariable = caddr(p1)
 	if (!issymbol(p6))
-		stop("product: 1st arg?")
+		stop("sum: 1st arg?")
 
-	# 2nd arg
-
-	push(caddr(p1))
-	Eval()
-	j = pop_integer()
-	if (j == 0x80000000)
-		stop("product: 2nd arg?")
-
-	# 3rd arg
-
+	# 3rd arg (lower limit)
 	push(cadddr(p1))
 	Eval()
+	j = pop_integer()
+	if (isNaN(j))
+		push p1
+		return
+
+	# 4th arg (upper limit)
+	push(caddddr(p1))
+	Eval()
 	k = pop_integer()
-	if (k == 0x80000000)
-		stop("product: 3rd arg?")
-
-	# 4th arg
-
-	p1 = caddddr(p1)
+	if (isNaN(k))
+		push p1
+		return
 
 	# remember contents of the index
 	# variable so we can put it back after the loop
-	p4 = get_binding(p6)
+	oldIndexVariableValue = get_binding(indexVariable)
 
 	push_integer(1)
 
 	for i in [j..k]
 		push_integer(i)
 		p5 = pop()
-		set_binding(p6, p5)
-		push(p1)
+		set_binding(indexVariable, p5)
+		push(body)
 		Eval()
+		if DEBUG
+			console.log "product - factor 1: " + stack[tos-1].toString()
+			console.log "product - factor 2: " + stack[tos-2].toString()
 		multiply()
+		if DEBUG
+			console.log "product - result: " + stack[tos-1].toString()
 
 	# put back the index variable to original content
-	set_binding(p6, p4)
+	set_binding(indexVariable, oldIndexVariableValue)

@@ -3,33 +3,52 @@
 
 
 Eval_test = ->
+	orig = p1
 	p1 = cdr(p1)
 	while (iscons(p1))
+
+		# odd number of parameters means that the
+		# last argument becomes the default case
+		# i.e. the one without a test.
 		if (cdr(p1) == symbol(NIL))
 			push(car(p1)); # default case
 			Eval()
 			return
+		
+		# load the next test and eval it
 		push(car(p1))
 		Eval_predicate()
 		p2 = pop()
-		if (!iszero(p2))
+		if isone(p2)
+			# test succesful, we found out output
 			push(cadr(p1))
 			Eval()
 			return
+		else if !iszero(p2)
+			# we couldn't determine the result
+			# of a test. This means we can't conclude
+			# anything about the result of the
+			# overall test, so we must bail
+			# with the unevalled test
+			push orig
+			return
+
+		# test unsuccessful, continue to the
+		# next pair of test,value
 		p1 = cddr(p1)
-	push_integer(0)
 
-# The test for equality is weaker than the other relational operators.
+	# no test matched and there was no
+	# catch-all case, so we return zero.
+	push_integer 0
 
-# For example, A<=B causes a stop when the result of A minus B is not a
-# numerical value.
-
-# However, A==B never causes a stop.
-
-# For A==B, any nonzero result for A minus B indicates inequality.
-
+# we test A==B by first subtracting and checking if we symbolically
+# get zero. If not, we evaluate to float and check if we get a zero.
+# If we get another NUMBER then we know they are different.
+# If we get something else, then we don't know and we return the
+# unaveluated test, which is the same as saying "maybe".
 Eval_testeq = ->
 	# first try without simplifyng both sides
+	orig = p1
 	push(cadr(p1))
 	Eval()
 	push(caddr(p1))
@@ -51,33 +70,79 @@ Eval_testeq = ->
 		simplify()
 		subtract()
 		p1 = pop()
+
 		if (iszero(p1))
+			# if we get symbolically to a zero
+			# then we have perfect equivalence.
 			push_integer(1)
 		else
-			push_integer(0)
+			# let's try to evaluate to a float
+			push p1
+			yyfloat()
+			p1 = pop()
+			if (iszero(p1))
+				# if we got to zero then fine
+				push_integer(1)
+			else if isnum(p1)
+				# if we got to any other number then
+				# we know they are different
+				push_integer(0)
+			else
+				# if we didn't get to a number then we
+				# don't know whether the quantities are
+				# different so do nothing
+				push orig
 
 # Relational operators expect a numeric result for operand difference.
 
 Eval_testge = ->
-	if (cmp_args() >= 0)
+	orig = p1
+	comparison = cmp_args()
+
+	if !comparison?
+		push orig
+		return
+
+	if ( comparison >= 0)
 		push_integer(1)
 	else
 		push_integer(0)
 
 Eval_testgt = ->
-	if (cmp_args() > 0)
+	orig = p1
+	comparison = cmp_args()
+
+	if !comparison?
+		push orig
+		return
+
+	if ( comparison > 0)
 		push_integer(1)
 	else
 		push_integer(0)
 
 Eval_testle = ->
-	if (cmp_args() <= 0)
+	orig = p1
+	comparison = cmp_args()
+
+	if !comparison?
+		push orig
+		return
+
+	if ( comparison <= 0)
 		push_integer(1)
 	else
 		push_integer(0)
 
 Eval_testlt = ->
-	if (cmp_args() < 0)
+	orig = p1
+	comparison = cmp_args()
+
+	if !comparison?
+		push orig
+		return
+
+	if ( comparison < 0)
 		push_integer(1)
 	else
 		push_integer(0)
@@ -91,6 +156,22 @@ Eval_not = ->
 		push_integer(1)
 	else
 		push_integer(0)
+
+### and =====================================================================
+
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+a,b,...
+
+General description
+-------------------
+Logical-and of predicate expressions.
+
+###
 
 # and definition
 Eval_and = ->
@@ -159,8 +240,7 @@ cmp_args = ->
 			else
 				t = 1
 		else
-			stop("relational operator: cannot determine due to non-numerical comparison")
-			t = 0
+			t = null
 
 	return t
 

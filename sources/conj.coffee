@@ -1,5 +1,18 @@
-# Complex conjugate
+### conj =====================================================================
 
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+z
+
+General description
+-------------------
+Returns the complex conjugate of z.
+
+###
 
 
 Eval_conj = ->
@@ -15,6 +28,8 @@ Eval_conj = ->
 		conjugate()
 
 
+# careful is you pass this one an expression with
+# i (instead of (-1)^(1/2)) then this doesn't work!
 conjugate = ->
 	push(imaginaryunit)
 	push(imaginaryunit)

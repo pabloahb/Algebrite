@@ -3,6 +3,7 @@
 # n is the total number of things on the stack. The first thing on the stack
 # is the object to be indexed, followed by the indices themselves.
 
+# called by Eval_index
 index_function = (n) ->
 	i = 0
 	k = 0
@@ -15,13 +16,6 @@ index_function = (n) ->
 	s = tos - n
 	p1 = stack[s]
 
-	# index of scalar ok
-
-	if (!istensor(p1))
-		tos -= n
-		push(p1)
-		restore()
-		return
 
 	ndim = p1.tensor.ndim
 
@@ -40,7 +34,7 @@ index_function = (n) ->
 		k = k * p1.tensor.dim[i] + t - 1
 
 	if (ndim == m)
-		tos -= n
+		moveTos tos - n
 		push(p1.tensor.elem[k])
 		restore()
 		return
@@ -63,15 +57,10 @@ index_function = (n) ->
 	for i in [0...nelem]
 		p2.tensor.elem[i] = p1.tensor.elem[k + i]
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
+	check_tensor_dimensions p2
 
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-
-	tos -= n
+	moveTos tos - n
 	push(p2)
 	restore()
 
@@ -151,13 +140,8 @@ set_component = (n) ->
 	for i in [0...p1.tensor.nelem]
 		p3.tensor.elem[i] = p1.tensor.elem[i]; # p1 is LVALUE # p3 is TMP
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-
-	if p3.tensor.nelem != p3.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
+	check_tensor_dimensions p3
 
 	p1 = p3; # p1 is LVALUE # p3 is TMP
 
@@ -166,11 +150,9 @@ set_component = (n) ->
 			stop("error in indexed assign")
 		p1.tensor.elem[k] = p2; # p1 is LVALUE # p2 is RVALUE
 
-		if p1.tensor.nelem != p1.tensor.elem.length
-			console.log "something wrong in tensor dimensions"
-			debugger
+		check_tensor_dimensions p1
 
-		tos -= n
+		moveTos tos - n
 		push(p1); # p1 is LVALUE
 		restore()
 		return
@@ -193,16 +175,10 @@ set_component = (n) ->
 	for i in [0...p2.tensor.nelem] # p2 is RVALUE
 		p1.tensor.elem[k + i] = p2.tensor.elem[i]; # p1 is LVALUE # p2 is RVALUE
 
-	if p1.tensor.nelem != p1.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
+	check_tensor_dimensions p1
+	check_tensor_dimensions p2
 
-	if p2.tensor.nelem != p2.tensor.elem.length
-		console.log "something wrong in tensor dimensions"
-		debugger
-
-
-	tos -= n
+	moveTos tos - n
 
 	push(p1); # p1 is LVALUE
 

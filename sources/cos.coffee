@@ -1,5 +1,18 @@
-# Cosine function of numerical and symbolic arguments
+### cos =====================================================================
 
+Tags
+----
+scripting, JS, internal, treenode, general concept
+
+Parameters
+----------
+x
+
+General description
+-------------------
+Returns the cosine of x.
+
+###
 
 
 Eval_cos = ->
@@ -79,7 +92,15 @@ cosine_of_angle = ->
 		power()
 		return
 
-	# multiply by 180/pi
+	# multiply by 180/pi to go from radians to degrees.
+	# we go from radians to degrees because it's much
+	# easier to calculate symbolic results of most (not all) "classic"
+	# angles (e.g. 30,45,60...) if we calculate the degrees
+	# and the we do a switch on that.
+	# Alternatively, we could look at the fraction of pi
+	# (e.g. 60 degrees is 1/3 pi) but that's more
+	# convoluted as we'd need to look at both numerator and
+	# denominator.
 
 	push(p1)
 	push_integer(180)
@@ -94,7 +115,10 @@ cosine_of_angle = ->
 
 	n = pop_integer()
 
-	if (n < 0 || n == 0x80000000)
+	# most "good" (i.e. compact) trigonometric results
+	# happen for a round number of degrees. There are some exceptions
+	# though, e.g. 22.5 degrees, which we don't capture here.
+	if (n < 0 || isNaN(n))
 		push(symbol(COS))
 		push(p1)
 		list(2)
