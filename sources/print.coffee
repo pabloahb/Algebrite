@@ -1447,12 +1447,12 @@ print_multiply_sign = ->
 	accumulator = ""
 	if printMode == PRINTMODE_LATEX
 		if printMode == PRINTMODE_PLAIN and !test_flag
-			accumulator += print_str(" ")
+			accumulator += print_str("*")
 		else
 			return accumulator
 
 	if printMode == PRINTMODE_PLAIN and !test_flag and !codeGen
-		accumulator += print_str(" ")
+		accumulator += print_str("*")
 	else
 		accumulator += print_str("*")
 	return accumulator
