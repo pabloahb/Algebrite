@@ -93,6 +93,14 @@ yymultiply = ->
 		tensor_times_scalar()
 		return
 
+	# tensor times tensor?
+
+	if (istensor(p1) && istensor(p2))
+		push(p1)
+		push(p2)
+		inner()
+		return
+
 	# adjust operands
 
 	if (car(p1) == symbol(MULTIPLY))
