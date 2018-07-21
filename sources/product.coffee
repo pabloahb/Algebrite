@@ -17,8 +17,8 @@ Eval_product = ->
 
 	# 2nd arg (index)
 	indexVariable = caddr(p1)
-	if (!issymbol(p6))
-		stop("sum: 1st arg?")
+	if (!issymbol(indexVariable))
+		stop("product: 2st arg?")
 
 	# 3rd arg (lower limit)
 	push(cadddr(p1))
