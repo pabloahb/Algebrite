@@ -87,6 +87,10 @@ Eval_testeq = ->
 				# if we got to any other number then
 				# we know they are different
 				push_integer(0)
+			else if istensor(p1)
+				# if we got to any other tensor then
+				# we know they are different
+				push_integer(0)
 			else
 				# if we didn't get to a number then we
 				# don't know whether the quantities are

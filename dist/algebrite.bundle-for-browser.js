@@ -21613,6 +21613,8 @@
           return push_integer(1);
         } else if (isnum(p1)) {
           return push_integer(0);
+        } else if (istensor(p1)) {
+          return push_integer(0);
         } else {
           return push(orig);
         }
