@@ -24285,7 +24285,7 @@
           func_array[0] = func_array[0].replace("function ", s.toString()).replace(" ", ",");
           symstring = func_array[0] + "=" + func_array[1];
         } else {
-          symstring = sString + "=" + bString;
+          symstring = sString + ":=" + bString;
         }
         break;
       case NUM:
@@ -24298,10 +24298,10 @@
         symstring = sString + "=" + bString;
         break;
       case TENSOR:
-        symstring = sString + "=" + bString;
+        symstring = sString + ":=" + bString;
         break;
       case SYM:
-        symstring = sString + "=" + bString;
+        symstring = sString + ":=" + bString;
         break;
       default:
         symstring = sString + "=" + bString;

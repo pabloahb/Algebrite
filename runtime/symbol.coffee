@@ -285,7 +285,7 @@ binding_to_string = (s,b) ->
 				func_array[0]=func_array[0].replace("function ",s.toString()).replace(" ",",")
 				symstring=func_array[0]+"="+func_array[1]
 			else
-				symstring=sString+"="+bString
+				symstring=sString+":="+bString
 		when NUM
 			symstring=sString+"="+bString
 		when DOUBLE
@@ -293,9 +293,9 @@ binding_to_string = (s,b) ->
 		when STR
 			symstring=sString+"="+bString
 		when TENSOR
-			symstring=sString+"="+bString
+			symstring=sString+":="+bString
 		when SYM
-			symstring=sString+"="+bString
+			symstring=sString+":="+bString
 		else
 			symstring=sString+"="+bString
 	return symstring
